@@ -1,7 +1,12 @@
+// src/api.js
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: 'http://localhost:5000', // Adjust as necessary
-});
-
-export default api;
+export const analyzeText = async (text) => {
+    try {
+        const response = await axios.post('http://localhost:5000/ai-analysis', { text });
+        return response.data.result;
+    } catch (error) {
+        console.error('Error in API call', error);
+        throw error;
+    }
+};

@@ -1,24 +1,23 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_cors import CORS
+# app/__init__.py
 
-# Initialize extensions
-db = SQLAlchemy()
+from flask import Flask
+from flask_cors import CORS
+from .extensions import db, migrate
+from .routes import ai_blueprint
+from .config import Config  # Correct import
 
 def create_app():
     app = Flask(__name__)
+    app.config.from_object(Config)
 
-    # Load configuration
-    app.config.from_object('config.Config')
-
-    # Initialize extensions
-    db.init_app(app)
-    Migrate(app, db)
+    # Enable CORS for the application
     CORS(app)
 
+    # Initialize database and migration support
+    db.init_app(app)
+    migrate.init_app(app, db)
+
     # Register blueprints
-    from .routes import ai_blueprint
     app.register_blueprint(ai_blueprint)
 
     return app
