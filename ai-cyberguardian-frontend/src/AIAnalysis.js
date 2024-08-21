@@ -1,33 +1,45 @@
 import React, { useState } from 'react';
-import api from './services/api';
+import axios from 'axios';
 
-function AIAnalysis() {
-  const [input, setInput] = useState('');
-  const [result, setResult] = useState('');
+const AIAnalysis = () => {
+    const [inputText, setInputText] = useState('');
+    const [result, setResult] = useState('');
 
-  const handleAnalysis = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await api.post('/ai-analysis', { input }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setResult(response.data.result);
-    } catch (error) {
-      console.error('AI Analysis failed', error);
-    }
-  };
+    const handleInputChange = (e) => {
+        setInputText(e.target.value);
+    };
 
-  return (
-    <div>
-      <h2>AI Analysis</h2>
-      <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder="Enter text for analysis"></textarea>
-      <button onClick={handleAnalysis}>Analyze</button>
-      <div>
-        <h3>Result:</h3>
-        <p>{result}</p>
-      </div>
-    </div>
-  );
-}
+    const handleAnalyze = () => {
+        axios.post('http://localhost:5000/ai-analysis', 
+            { text: inputText }, // Data is directly passed here
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }
+        )
+        .then(response => {
+            setResult(response.data.result);
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    };
+
+    return (
+        <div>
+            <h1>AI Analysis</h1>
+            <input
+                type="text"
+                value={inputText}
+                onChange={handleInputChange}
+                placeholder="Enter text"
+            />
+            <button onClick={handleAnalyze}>Analyze</button>
+            <h2>Result:</h2>
+            <p>{result}</p>
+        </div>
+    );
+};
 
 export default AIAnalysis;

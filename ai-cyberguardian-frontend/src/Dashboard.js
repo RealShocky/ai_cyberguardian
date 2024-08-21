@@ -1,11 +1,11 @@
 import React from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 function Dashboard() {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleAIAnalysis = () => {
-    history.push('/ai-analysis');
+    navigate('/ai-analysis');
   };
 
   return (
