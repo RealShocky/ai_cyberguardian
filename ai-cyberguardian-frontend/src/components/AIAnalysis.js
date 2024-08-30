@@ -1,95 +1,99 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { TextField, Button, Typography, Alert, CircularProgress } from '@mui/material';
+import React, { useState } from 'react';
+import { Typography, Container, TextField, Button, CircularProgress, Alert } from '@mui/material';
 
 const AIAnalysis = () => {
-    const [text, setText] = useState('');
-    const [result, setResult] = useState(null);
-    const [error, setError] = useState(null);
+    const [inputText, setInputText] = useState('');
+    const [result, setResult] = useState('');
     const [loading, setLoading] = useState(false);
-    const [feedback, setFeedback] = useState('');
-    const lastRequestTimeRef = useRef(null);
-    const requestDelay = 3000; // 3 seconds delay between requests
+    const [error, setError] = useState(null);
+    const [isValid, setIsValid] = useState(true);
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+    const validateInput = (text) => {
+        return text && text.length > 10; // Simple validation check
+    };
 
-        if (!text || text.trim() === '') {
-            setError("Input text cannot be empty.");
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError(null);
+
+        if (!validateInput(inputText)) {
+            setIsValid(false);
+            setError('Input must be at least 10 characters long.');
             return;
         }
-
-        const now = Date.now();
-        if (lastRequestTimeRef.current && (now - lastRequestTimeRef.current < requestDelay)) {
-            setError("You are submitting requests too quickly. Please wait a moment.");
-            return;
-        }
-        lastRequestTimeRef.current = now;
 
         setLoading(true);
-        setError(null);
-        setResult(null);
+        setIsValid(true);
 
         try {
-            console.log(`Sending request to server: ${text}`);
-            const response = await axios.post('http://localhost:5000/ai-analysis', {
-                text: text.trim()
+            const response = await fetch('http://localhost:5000/ai-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: inputText }),
             });
 
-            setResult(response.data.result);
-            console.log(`Received result from server: ${response.data.result}`);
-        } catch (error) {
-            setError("An error occurred during analysis.");
-            console.error("There was an error!", error);
+            if (!response.ok) {
+                throw new Error('Error occurred while processing your request.');
+            }
+
+            const data = await response.json();
+
+            if (data && data.choices && data.choices.length > 0 && typeof data.choices[0].message.content === 'string') {
+                setResult(data.choices[0].message.content);
+            } else {
+                setError('Unexpected response structure.');
+            }
+        } catch (err) {
+            setError(err.message);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleTextChange = (e) => {
+    const handleInputChange = (e) => {
         const value = e.target.value;
-        setText(value);
-
-        if (value.trim().length < 10) {
-            setFeedback("Input too short, please provide more text.");
-        } else {
-            setFeedback("");
+        setInputText(value);
+        setIsValid(validateInput(value));
+        if (isValid) {
+            setError(null);  // Clear error if input is valid
         }
     };
 
-    useEffect(() => {
-        if (error) {
-            console.log(`Error: ${error}`);
-        }
-    }, [error]);
-
     return (
-        <div>
-            <Typography variant="h5">AI Cyber Analysis</Typography>
-            {error && <Alert severity="error">{error}</Alert>}
+        <Container>
+            <Typography variant="h4" component="h1" gutterBottom>
+                AI Cyber Analysis
+            </Typography>
             <form onSubmit={handleSubmit}>
                 <TextField
                     label="Enter text to analyze"
                     variant="outlined"
                     fullWidth
+                    value={inputText}
+                    onChange={handleInputChange}
                     multiline
                     rows={4}
-                    value={text}
-                    onChange={handleTextChange}
-                    error={!!feedback}
-                    helperText={feedback}
-                    style={{ marginBottom: '20px' }}
+                    error={!isValid}
+                    helperText={!isValid ? 'Input must be at least 10 characters long.' : ''}
                 />
                 <Button variant="contained" color="primary" type="submit" disabled={loading}>
                     {loading ? <CircularProgress size={24} /> : 'Analyze'}
                 </Button>
             </form>
+            {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
             {result && (
-                <Typography variant="h6" style={{ marginTop: '20px' }}>
-                    Analysis Result: {result}
+                <Typography variant="h6" component="div" sx={{ mt: 2 }}>
+                    Analysis Result
                 </Typography>
             )}
-        </div>
+            {result && (
+                <Typography variant="body1" component="p">
+                    {result}
+                </Typography>
+            )}
+        </Container>
     );
 };
 

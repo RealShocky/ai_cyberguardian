@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
 import { Container, Typography, TextField, Button, CircularProgress, Snackbar } from '@mui/material';
-import { Alert } from '@mui/material';
+import Alert from '@mui/material/Alert';
 import axios from 'axios';
 
 const App = () => {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState('');
+  const [result, setResult] = useState(''); // Ensure result is a string
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
 
   const handleSubmit = async () => {
     setLoading(true);
     setError('');
+    setResult(''); // Clear previous results
     try {
       const response = await axios.post('http://localhost:5000/ai-analysis', { text });
-      setResult(response.data.result);
+
+      if (response.data && response.data.result) {
+        setResult(response.data.result); // Set the result directly as a string
+      } else {
+        setError('No result returned from analysis.');
+      }
     } catch (err) {
       setError('Error occurred while processing your request.');
     } finally {
@@ -57,7 +63,11 @@ const App = () => {
       <Typography variant="h6" style={{ marginTop: '20px' }}>
         Analysis Result
       </Typography>
-      <Typography>{result}</Typography>
+      {result && (
+        <Typography component="p">
+          {result} {/* Displaying the result directly */}
+        </Typography>
+      )}
 
       <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
         <Alert onClose={handleClose} severity={error ? "error" : "success"}>

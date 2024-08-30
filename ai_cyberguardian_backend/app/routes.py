@@ -5,7 +5,6 @@ import logging
 ai_blueprint = Blueprint('ai_blueprint', __name__)
 notification_blueprint = Blueprint('notification_blueprint', __name__)
 
-# Initialize the logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -19,8 +18,8 @@ def ai_analysis():
         return jsonify({"error": "Input text cannot be empty."}), 400
 
     try:
-        result = perform_analysis(text)
-        return jsonify({"result": result}), 200
+        result, updated_history = perform_analysis(text)
+        return jsonify({"result": result, "history": updated_history}), 200
     except Exception as e:
         logger.error(f"Error during AI analysis: {e}")
         return jsonify({"error": "An error occurred during analysis."}), 500

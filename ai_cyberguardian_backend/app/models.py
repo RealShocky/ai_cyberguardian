@@ -13,3 +13,13 @@ class DataSource(db.Model):
     api_key = db.Column(db.String(255), nullable=True)  # If applicable
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+class UserFeedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    feedback = db.Column(db.String(50), nullable=False)
+    conversation_history = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
