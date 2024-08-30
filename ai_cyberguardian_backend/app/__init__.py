@@ -1,23 +1,17 @@
-# app/__init__.py
-
 from flask import Flask
-from flask_cors import CORS
-from .extensions import db, migrate
-from .routes import ai_blueprint
-from .config import Config  # Correct import
+from .routes import ai_blueprint, notification_blueprint
+from .extensions import db, migrate, socketio
+from .config import Config
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # Enable CORS for the application
-    CORS(app)
-
-    # Initialize database and migration support
     db.init_app(app)
     migrate.init_app(app, db)
+    socketio.init_app(app)
 
-    # Register blueprints
     app.register_blueprint(ai_blueprint)
+    app.register_blueprint(notification_blueprint)
 
     return app
